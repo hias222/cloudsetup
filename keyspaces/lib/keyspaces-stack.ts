@@ -4,6 +4,8 @@ import * as sqs from '@aws-cdk/aws-sqs';
 import * as cdk from '@aws-cdk/core';
 import * as cassandra from '@aws-cdk/aws-cassandra';
 
+import * as tableColumns from  './tableColumns';
+
 export class KeyspacesStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -14,43 +16,42 @@ export class KeyspacesStack extends cdk.Stack {
 
     const topic = new sns.Topic(this, 'KeyspacesTopic');
 
-    new cassandra.CfnKeyspace(this, 'colorado', {
-      keyspaceName: 'colorado'
+    var keyspaceName = 'colorado';
+    var tableNameHeatdata = 'heatdata';
+    var tableNameHeatids = 'heatids';
+
+    const keyspace = new cassandra.CfnKeyspace(this, keyspaceName, {
+      keyspaceName: keyspaceName
     });
+
+    new cassandra.CfnTable(this,tableNameHeatdata,{
+      tableName: tableNameHeatdata,
+      keyspaceName: keyspaceName,
+      partitionKeyColumns: [{
+        columnName: 'heatid',
+        columnType: 'uuid',
+      }],
+      defaultTimeToLive: 0,
+      regularColumns: tableColumns.heatdata
+    }).addDependsOn(keyspace)
+
+    new cassandra.CfnTable(this,tableNameHeatids,{
+      tableName: tableNameHeatids,
+      keyspaceName: keyspaceName,
+      partitionKeyColumns: [{
+        columnName: 'wkid',
+        columnType: 'int',
+      },
+      {
+        columnName: 'creation_date',
+        columnType: 'timestamp',
+      }
+    ],
+      defaultTimeToLive: 0,
+      regularColumns: tableColumns.heatids
+    }).addDependsOn(keyspace)
 
 
     topic.addSubscription(new subs.SqsSubscription(queue));
   }
 }
-
-
-
-/*
- ks = cassandra.CfnKeyspace(
-            self, "MycassandraKeySpace", keyspace_name="MycassandraKeySpace"
-        )
-        cassandra.CfnTable(
-            self,
-            "CustomerTable",
-            table_name="Customer",
-            keyspace_name="MycassandraKeySpace",
-            regular_columns=[
-                cassandra.CfnTable.ColumnProperty(
-                    column_name="name",
-                    column_type="varchar",
-                ),
-                cassandra.CfnTable.ColumnProperty(
-                    column_name="country",
-                    column_type="varchar",
-                ),
-                cassandra.CfnTable.ColumnProperty(
-                    column_name="email", column_type="varchar"
-                ),
-            ],
-            partition_key_columns=[
-                cassandra.CfnTable.ColumnProperty(
-                    column_name="id", column_type="varchar"
-                )
-            ],
-        ).add_depends_on(ks)
-        */
