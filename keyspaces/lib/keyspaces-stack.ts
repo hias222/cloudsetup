@@ -35,18 +35,22 @@ export class KeyspacesStack extends cdk.Stack {
       regularColumns: tableColumns.heatdata
     }).addDependsOn(keyspace)
 
+    // ordering missing
     new cassandra.CfnTable(this,tableNameHeatids,{
       tableName: tableNameHeatids,
       keyspaceName: keyspaceName,
       partitionKeyColumns: [{
         columnName: 'wkid',
         columnType: 'int',
-      },
-      {
-        columnName: 'creation_date',
-        columnType: 'timestamp',
       }
     ],
+    clusteringKeyColumns: [{
+       column: {
+        columnName: 'creation_date',
+        columnType: 'timestamp',
+       },
+       orderBy: 'DESC'
+    }],
       defaultTimeToLive: 0,
       regularColumns: tableColumns.heatids
     }).addDependsOn(keyspace)
