@@ -1,20 +1,13 @@
-import * as sns from '@aws-cdk/aws-sns';
-import * as subs from '@aws-cdk/aws-sns-subscriptions';
+import * as iam from '@aws-cdk/aws-iam';
 import * as sqs from '@aws-cdk/aws-sqs';
 import * as cdk from '@aws-cdk/core';
+import * as iot from '@aws-cdk/aws-iot';
 import * as cassandra from '@aws-cdk/aws-cassandra';
-
-import * as tableColumns from  './tableColumns';
+import * as tableColumns from './tableColumns';
 
 export class KeyspacesStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
-    const queue = new sqs.Queue(this, 'KeyspacesQueue', {
-      visibilityTimeout: cdk.Duration.seconds(300)
-    });
-
-    const topic = new sns.Topic(this, 'KeyspacesTopic');
 
     var keyspaceName = 'colorado';
     var tableNameHeatdata = 'heatdata';
@@ -24,7 +17,7 @@ export class KeyspacesStack extends cdk.Stack {
       keyspaceName: keyspaceName
     });
 
-    new cassandra.CfnTable(this,tableNameHeatdata,{
+    new cassandra.CfnTable(this, tableNameHeatdata, {
       tableName: tableNameHeatdata,
       keyspaceName: keyspaceName,
       partitionKeyColumns: [{
@@ -36,26 +29,90 @@ export class KeyspacesStack extends cdk.Stack {
     }).addDependsOn(keyspace)
 
     // ordering missing
-    new cassandra.CfnTable(this,tableNameHeatids,{
+    new cassandra.CfnTable(this, tableNameHeatids, {
       tableName: tableNameHeatids,
       keyspaceName: keyspaceName,
       partitionKeyColumns: [{
         columnName: 'wkid',
         columnType: 'int',
       }
-    ],
-    clusteringKeyColumns: [{
-       column: {
-        columnName: 'creation_date',
-        columnType: 'timestamp',
-       },
-       orderBy: 'DESC'
-    }],
+      ],
+      clusteringKeyColumns: [{
+        column: {
+          columnName: 'creation_date',
+          columnType: 'timestamp',
+        },
+        orderBy: 'DESC'
+      }],
       defaultTimeToLive: 0,
       regularColumns: tableColumns.heatids
     }).addDependsOn(keyspace)
 
+    const storechannelQueue = new sqs.Queue(this, 'storechannel', {
+      visibilityTimeout: cdk.Duration.seconds(300),
+      queueName: 'cdkstorechannel',
+      retentionPeriod: cdk.Duration.seconds(1800),
+    });
 
-    topic.addSubscription(new subs.SqsSubscription(queue));
+    const mainchannelQueue = new sqs.Queue(this, 'mainchannel', {
+      visibilityTimeout: cdk.Duration.seconds(300),
+      queueName: 'cdkmainchannel',
+      retentionPeriod: cdk.Duration.seconds(1800),
+    });
+
+    const iotActionsRole = new iam.Role(this, 'iot-actions-role', {
+      assumedBy: new iam.ServicePrincipal('iot.amazonaws.com')
+    });
+
+    mainchannelQueue.grantSendMessages(iotActionsRole)
+    storechannelQueue.grantSendMessages(iotActionsRole)
+
+    const sqsMainActionProperty: iot.CfnTopicRule.SqsActionProperty = {
+      queueUrl: mainchannelQueue.queueUrl,
+      roleArn: iotActionsRole.roleArn
+    };
+
+    const mainActionProperty: iot.CfnTopicRule.ActionProperty = {
+      sqs: sqsMainActionProperty,
+    }
+
+    const sqsMainPayloadProperty: iot.CfnTopicRule.TopicRulePayloadProperty = {
+      actions: [mainActionProperty],
+      sql: "SELECT * FROM 'mainchannel'",
+    };
+
+    new iot.CfnTopicRule(this, 'IotTopicMain', {
+      ruleName: "cdkmainchannel",
+      topicRulePayload: sqsMainPayloadProperty
+    });
+
+
+    const sqsStoreActionProperty: iot.CfnTopicRule.SqsActionProperty = {
+      queueUrl: storechannelQueue.queueUrl,
+      roleArn: iotActionsRole.roleArn
+    };
+
+    const storeActionProperty: iot.CfnTopicRule.ActionProperty = {
+      sqs: sqsStoreActionProperty,
+    }
+
+    const sqsStorePayloadProperty: iot.CfnTopicRule.TopicRulePayloadProperty = {
+      actions: [storeActionProperty],
+      sql: "SELECT * FROM 'storechannel'",
+    };
+
+    new iot.CfnTopicRule(this, 'IotTopicStore', {
+      ruleName: "cdkstorechannel",
+      topicRulePayload: sqsStorePayloadProperty
+    });
+
+    new cdk.CfnOutput(this, 'mainchannelQueue', {
+      value: mainchannelQueue.queueUrl,
+    });
+
+    new cdk.CfnOutput(this, 'storechannelQueue', {
+      value: storechannelQueue.queueUrl,
+    });
+
   }
 }
