@@ -20,6 +20,28 @@ aws sqs list-queues
 # keyspace
 ```
 
+## Install
+
+### EC2
+
+```bash
+cdk deploy Ec2Stack --profile setup
+```
+
+### Keyspaces
+
+```bash
+cdk deploy KeyspacesStack
+```
+
+### Websocket only
+
+```bash
+cdk deploy WebSocketOnly --profile setup
+# add IP Addreses and keys to ansible (wsaws)
+ansible-playbook -i inventories/production/hosts awsWSService.yml --limit=wsaws -e global_clean_all=true
+```
+
 ## deploy
 
 ```bash
