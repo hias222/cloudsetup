@@ -67,7 +67,7 @@ export class WebSocketOnly extends cdk.Stack {
     });
 
     const wstarget = listener.addTargets('wstarget', {
-      port: 4002,
+      port: 8080,
       protocol: elbv2.ApplicationProtocol.HTTP,
       targets: [wsasg],
       healthCheck: {
