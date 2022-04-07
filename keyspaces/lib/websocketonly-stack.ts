@@ -47,14 +47,11 @@ export class WebSocketOnly extends cdk.Stack {
       },
       securityGroup: webserverSG,
       instanceType: ec2.InstanceType.of(
-        ec2.InstanceClass.T4G,
+        ec2.InstanceClass.T2,
         ec2.InstanceSize.MICRO,
       ),
-      //machineImage: new ec2.AmazonLinuxImage({
-      //  generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
-      //}),
       machineImage: new ec2.GenericLinuxImage({
-        'eu-central-1': 'ami-0b168c89474ef4301'
+        'eu-central-1': 'ami-0d527b8c289b4af7f'
       }),
       keyName: 'ec2-key-pair',
       minCapacity: 1,
@@ -125,6 +122,18 @@ export class WebSocketOnly extends cdk.Stack {
     new cdk.CfnOutput(this, 'mainchannelQueue', {
       value: mainchannelQueue.queueUrl,
     });
+
+    // ARM
+    // 'eu-central-1': 'ami-0b168c89474ef4301'
+    //         ec2.InstanceClass.T4G,
+    //     ec2.InstanceSize.MICRO,
+
+    //x64
+    // Ubuntu Server 20.04 LTS (HVM), SSD Volume Type - ami-04505e74c0741db8d
+    // 'eu-central-1': 'ami-0d527b8c289b4af7f'
+    //      ec2.InstanceClass.T4,
+    //     ec2.InstanceSize.MICRO,
+    // t2.micro
 
   }
 }
