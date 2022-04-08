@@ -10,6 +10,15 @@ npm i -g aws-cdk
 aws configure
 ```
 
+### Certificates
+
+Cloud front certificates manual config  
+
+* cloudfront need to be ssl
+* forward ssl to sockets
+  
+for Websocket a certificate need to bee prepared, add arn script
+
 ## check access rights
 
 ```bash
