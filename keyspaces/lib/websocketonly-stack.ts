@@ -125,7 +125,6 @@ export class WebSocketOnly extends cdk.Stack {
     const record = new route53.ARecord(this, 'socket', {
       zone: myZone,
       recordName: 'socket',
-      ttl: cdk.Duration.seconds(30),
       target: route53.RecordTarget.fromAlias( new alias.LoadBalancerTarget(alb))
     })
 
