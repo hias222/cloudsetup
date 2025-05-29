@@ -62,7 +62,6 @@ cdk deploy
 
 download cert curl https://certs.secureserver.net/repository/sf-class2-root.crt -O
 
-
 ```bash
 # cassandra.eu-central-1.amazonaws.com
 # ssl_context = SSLContext(PROTOCOL_TLSv1_2)
