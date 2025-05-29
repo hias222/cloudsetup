@@ -1,11 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
 import { AutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling';
 import { CloudFormationInit, GenericLinuxImage, InitConfig, InitFile, InstanceClass, InstanceSize, InstanceType, KeyPair, KeyPairType, Peer, Port, SecurityGroup, SubnetType, UserData, Vpc } from 'aws-cdk-lib/aws-ec2';
-import { ApplicationLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import { ApplicationLoadBalancer, ApplicationProtocol, ListenerCertificate, SslPolicy } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
+import { LoadBalancerTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { Construct } from 'constructs';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
-
-const sshPubKey = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCutxuVIQiLAktM+lZSgiZoDlQvFREd1ap8NOjCWrMl0/rJpJvpGDifeRG4eP2nNgAFY2VbgsOZGAdPTMZHSypxfFlYGHFSWnvySt5hWN7AldRHKlWNKZ5IKilc4V1qGVrzP6GD6IdXjWOb2bxDe230tefHW4ZxxKlyHTEmq7orB93IFQSXcAEActVE4bf0fjPwIholzrQRGsCDbOewf2e8lI7N41H8An12i5OBxNj76o8dRGr2imPo/9v2ObfCqki9WbgG3HXvHDJsqKZ5IneCsao5UXREyiz3/GToOLJQAAU+ZfoAyLQcDLTS+HLiYL6Jcl9qKHhHXAA35of1zEHlxQfegvLhXFqODo9kIFy95uaLaSmC7tEinVJdJ2/p5/RcD1Ol6oSubKoXLc/h/7XeHpwwsTZ4B8F8Rt+rkOFZ18mWP5aw7+C99ylm6eF0l3yEXYyx7H5zLNZqBARoyWPwnYb9IA6s4WVmi/7YulO170x9wImyJPzO+s/0d5yauA0= MFU@QM-MOS-MFU.fritz.box'
 
 export default class EasyWk extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -39,12 +39,25 @@ export default class EasyWk extends cdk.Stack {
       open: true,
     });
 
+    // der kann nur in der gleichen region sein
+    const cert_arn = ListenerCertificate.fromArn('arn:aws:acm:eu-central-1:654384432543:certificate/12aa1c3e-1421-4ee3-85a5-27f6f9b8c5c5')
+
+    const httpsListener = alb.addListener('SSLListener', {
+      port: 443,
+      protocol: ApplicationProtocol.HTTPS,
+      sslPolicy: SslPolicy.RECOMMENDED,
+      certificates: [cert_arn]
+    })
+
     const userData = UserData.forLinux();
 
     // Add user data that is used to configure the EC2 instance
     userData.addCommands(
-      'yum update -y',
-      'mkdir -p /home/ec2-user/sample'
+      'apt update -y',
+      'apt install apache2 net-tools -y',
+      'apt install php libapache2-mod-php -y',
+      'mkdir -p /home/ubuntu/sample',
+      'systemctl restart apache2.service'
     );
 
     const keyPair = KeyPair.fromKeyPairAttributes(this, 'KeyPair', {
@@ -74,9 +87,35 @@ export default class EasyWk extends cdk.Stack {
       maxCapacity: 1,
     });
 
-    httpListener.addTargets('MyFleet', {
-      port: 8080,
+    httpListener.addTargets('test-80', {
+      port: 80,
       targets: [baseasg],
+    });
+
+    httpsListener.addTargets('https-target', {
+      port: 80,
+      protocol: ApplicationProtocol.HTTP,
+      targets: [baseasg],
+    });
+
+    const myZone = HostedZone.fromHostedZoneAttributes(this, 'swimdata.de',
+      {
+        hostedZoneId: 'Z02356492TI9XLJ8MG2C1',
+        zoneName: 'swimdata.de'
+      });
+
+    const record = new ARecord(this, 'easywk', {
+      zone: myZone,
+      recordName: 'easywk',
+      target: RecordTarget.fromAlias(new LoadBalancerTarget(alb))
+    })
+
+    new cdk.CfnOutput(this, 'recordDNS', {
+      value: 'added ' + record.domainName,
+    });
+
+    new cdk.CfnOutput(this, 'albDNS', {
+      value: alb.loadBalancerDnsName,
     });
 
   }
