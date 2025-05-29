@@ -29,9 +29,24 @@ aws sqs list-queues
 # keyspace
 ```
 
-## Install
+## ec2setup
 
-### EC2
+```bash
+# global
+npm install -g typescript
+
+# build
+tsc
+
+# run
+cdk list
+cdk bootstrap --profile setup
+cdk deploy --profile setup
+```
+
+## keyspaces
+
+### ec2
 
 ```bash
 cdk deploy Ec2Stack --profile setup
