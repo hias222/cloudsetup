@@ -52,6 +52,30 @@ cdk deploy --profile setup
 cdk deploy Ec2Stack --profile setup
 ```
 
+```bash
+# copy data
+scp -i ~/.aws/ec2-key-pair.pem * ubuntu@3.72.35.118:/var/www/html
+##
+rsync -chavzP --stats user@remote.host:/path/to/copy /path/to/local/storage
+rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" ubuntu@3.72.35.118:/var/www/html /opt/shared/lenex/sad/live
+```
+
+```bash
+# cron
+*/5 * * * * /home/rock/start_easywk_sync.sh
+
+# start_easywk_sync.sh
+
+#!/bin/bash
+
+echo ""  >>  /home/rock/rsync.log
+
+echo "#####" >>  /home/rock/rsync.log
+
+date >> /home/rock/rsync.log
+
+/usr/bin/rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" /opt/shared/lenex/sad/live/* ubuntu@3.72.35.118:/var/www/html >> /home/rock/rsync.log
+
 ### Keyspaces
 
 ```bash
