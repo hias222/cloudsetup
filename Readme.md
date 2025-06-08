@@ -19,7 +19,7 @@ Cloud front certificates manual config
   
 for Websocket a certificate need to bee prepared, add arn script
 
-## check access rights
+## Install CDK scripts
 
 ```bash
 aws configure list
@@ -28,8 +28,6 @@ aws sts get-caller-identity
 aws sqs list-queues
 # keyspace
 ```
-
-## ec2setup
 
 ```bash
 # global
@@ -41,12 +39,14 @@ tsc
 # run
 cdk list
 cdk bootstrap --profile setup
+
+# deploys all
 cdk deploy --profile setup
 ```
 
-## keyspaces
+## EasyWk
 
-### ec2
+The script spins up one ec2 server with php and DNS entry easywk.swimdata.de
 
 ```bash
 cdk deploy Ec2Stack --profile setup
@@ -81,6 +81,25 @@ date >> /home/rock/rsync.log
 ```bash
 cdk deploy KeyspacesStack
 ```
+
+### BuildImage
+
+To use it live timing stack
+
+```bash
+cdk deploy BuildImage --profile setup
+```
+
+### LiveTiming
+
+The script spins up one ec2 server with all services to push messages from local mqtt
+
+```bash
+cdk deploy LiveTiming --profile setup
+```
+
+
+## old need to be updated
 
 ### Websocket only
 
