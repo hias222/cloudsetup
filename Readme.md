@@ -5,7 +5,8 @@
 ``` bash
 # # aws cli needs to be installed
 # install cdk
-npm i -g aws-cdk
+npm install -g aws-cdk
+npm install -g typescript
 # configure accounts
 aws configure
 ```
@@ -17,22 +18,11 @@ Cloud front certificates manual config
 * cloudfront need to be ssl
 * forward ssl to sockets
   
-for Websocket a certificate need to bee prepared, add arn script
+for easywk and Websocket a certificate need to bee prepared, add arn in cdk script
 
-## Install CDK scripts
-
-```bash
-aws configure list
-aws sts get-caller-identity
-# SQS
-aws sqs list-queues
-# keyspace
-```
+### Install CDK scripts
 
 ```bash
-# global
-npm install -g typescript
-
 # build
 tsc
 
@@ -46,26 +36,34 @@ cdk deploy --profile setup
 
 ## EasyWk
 
+### setup
+
 The script spins up one ec2 server with php and DNS entry easywk.swimdata.de
 
 ```bash
-cdk deploy Ec2Stack --profile setup
+cdk deploy EasyWk --profile setup
 ```
 
+### sync: prepare and test
+
 ```bash
-# copy data
+# check ssh connect - ip of server
 scp -i ~/.aws/ec2-key-pair.pem * ubuntu@3.72.35.118:/var/www/html
-##
-rsync -chavzP --stats user@remote.host:/path/to/copy /path/to/local/storage
+## rsync test
+# rsync -chavzP --stats user@remote.host:/path/to/copy /path/to/local/storage
 rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" ubuntu@3.72.35.118:/var/www/html /opt/shared/lenex/sad/live
 ```
+
+### sync: cron and srcript
 
 ```bash
 # cron
 */5 * * * * /home/rock/start_easywk_sync.sh
+```
 
-# start_easywk_sync.sh
+start_easywk_sync.sh
 
+```bash
 #!/bin/bash
 
 echo ""  >>  /home/rock/rsync.log
@@ -75,22 +73,19 @@ echo "#####" >>  /home/rock/rsync.log
 date >> /home/rock/rsync.log
 
 /usr/bin/rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" /opt/shared/lenex/sad/live/* ubuntu@3.72.35.118:/var/www/html >> /home/rock/rsync.log
-
-### Keyspaces
-
-```bash
-cdk deploy KeyspacesStack
 ```
+
+## LiveTiming
 
 ### BuildImage
 
-To use it live timing stack
+To use with live timing stack
 
 ```bash
 cdk deploy BuildImage --profile setup
 ```
 
-### LiveTiming
+### LiveTiming setup
 
 The script spins up one ec2 server with all services to push messages from local mqtt
 
@@ -98,6 +93,15 @@ The script spins up one ec2 server with all services to push messages from local
 cdk deploy LiveTiming --profile setup
 ```
 
+check queues
+
+```bash
+aws configure list
+aws sts get-caller-identity
+# SQS
+aws sqs list-queues
+# keyspace
+```
 
 ## old need to be updated
 
@@ -116,7 +120,7 @@ cd keyspaces
 cdk deploy
 ```
 
-# check cassandra access
+## check cassandra access
 
 download cert curl https://certs.secureserver.net/repository/sf-class2-root.crt -O
 
