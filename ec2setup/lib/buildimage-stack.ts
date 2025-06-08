@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { GenericLinuxImage, Instance, InstanceClass, InstanceSize, InstanceType, IpAddresses, KeyPair, KeyPairType, Peer, Port, SecurityGroup, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { GenericLinuxImage, Instance, InstanceClass, InstanceSize, InstanceType, IpAddresses, KeyPair, KeyPairType, Peer, Port, SecurityGroup, SubnetType, UserData, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { ApplicationLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Construct } from 'constructs';
 
@@ -28,10 +28,24 @@ export default class BuildImageStack extends cdk.Stack {
             'allow SSH access from anywhere',
         );
 
+        buildimage.addIngressRule(
+            Peer.anyIpv4(),
+            Port.tcp(8080),
+            'allow http 8080 for test'
+        );
+
+
         const keyPair = KeyPair.fromKeyPairAttributes(this, 'KeyPair', {
             keyPairName: 'ec2-key-pair',
             type: KeyPairType.RSA,
         })
+
+        const userData = UserData.forLinux();
+
+        // Add user data that is used to configure the EC2 instance
+        userData.addCommands(
+            'apt update -y',
+        )
 
         // 👇 create the EC2 Instance
 
@@ -41,13 +55,14 @@ export default class BuildImageStack extends cdk.Stack {
                 subnetType: SubnetType.PUBLIC,
             },
             keyPair: keyPair,
+            userData: userData,
             securityGroup: buildimage,
             instanceType: InstanceType.of(
                 InstanceClass.T2,
                 InstanceSize.MICRO,
             ),
             machineImage: new GenericLinuxImage({
-                'eu-central-1': 'ami-087c07a880dd0f021'
+                'eu-central-1': 'ami-014dd8ec7f09293e6'
             }),
 
             /*
@@ -63,7 +78,11 @@ export default class BuildImageStack extends cdk.Stack {
         });
 
         new cdk.CfnOutput(this, 'ec2Instance', {
-            value: 'ssh -i ~/.aws/ec2-key-pair.pem ec2-user@' + ec2Instance.instancePublicIp
+            value: 'ssh -i ~/.aws/ec2-key-pair.pem ubuntu@' + ec2Instance.instancePublicIp
+        });
+
+        new cdk.CfnOutput(this, 'ec2Instance_http', {
+            value: 'nginx: http://' + ec2Instance.instancePublicIp + ':8080/health'
         });
 
         new cdk.CfnOutput(this, 'ec2InstanceID', {

@@ -32,6 +32,9 @@ cdk bootstrap --profile setup
 
 # deploys all
 cdk deploy --profile setup
+
+# destroy all
+cdk destroy --profile setup --all
 ```
 
 ## EasyWk
@@ -77,6 +80,14 @@ date >> /home/rock/rsync.log
 
 ## LiveTiming
 
+### Messaging
+
+Setup base SQS and IoT
+
+```bash
+cdk deploy Messaging --profile setup
+```
+
 ### BuildImage
 
 To use with live timing stack
@@ -84,6 +95,16 @@ To use with live timing stack
 ```bash
 cdk deploy BuildImage --profile setup
 ```
+
+Use ansibelswim projekt
+
+* add host with ip to inventory
+
+```bash
+ansible-playbook -i inventories/production/hosts awsWSService.yml -e global_clean_all=true --limit=wsaws
+```
+
+* check acces on port 8080
 
 ### LiveTiming setup
 
