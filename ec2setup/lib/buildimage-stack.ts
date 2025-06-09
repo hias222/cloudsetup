@@ -62,10 +62,14 @@ export default class BuildImageStack extends cdk.Stack {
                 InstanceSize.MICRO,
             ),
             machineImage: new GenericLinuxImage({
-                'eu-central-1': 'ami-014dd8ec7f09293e6'
+                'eu-central-1': 'ami-0fbf281c629915e76'
             }),
 
             /*
+
+             // ami-0fbf281c629915e76 fertiges image
+             // ami-014dd8ec7f09293e6 frisches image
+
             instanceType: InstanceType.of(
             InstanceClass.T4G,
             InstanceSize.MICRO,

@@ -11,6 +11,10 @@ npm install -g typescript
 aws configure
 ```
 
+### Roles in AWS
+
+* IAMCreateRole - selbst erzeugt Richtlinie
+
 ### Certificates
 
 Cloud front certificates manual config  
@@ -88,6 +92,8 @@ Setup base SQS and IoT
 cdk deploy Messaging --profile setup
 ```
 
+[IoT Configs](aws/Readme.md)
+
 ### BuildImage
 
 To use with live timing stack
@@ -104,7 +110,7 @@ Use ansibelswim projekt
 ansible-playbook -i inventories/production/hosts awsWSService.yml -e global_clean_all=true --limit=wsaws
 ```
 
-* check acces on port 8080
+* check acces on port 8080 - see output of cdk build
 
 ### LiveTiming setup
 

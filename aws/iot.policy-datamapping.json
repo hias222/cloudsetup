@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "iot:Connect",
+      "Resource": "arn:aws:iot:eu-central-1:654384432543:client/sdk-nodejs-*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iot:Publish",
+      "Resource": [
+        "arn:aws:iot:eu-central-1:654384432543:topic/storechannel",
+        "arn:aws:iot:eu-central-1:654384432543:topic/mainchannel"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iot:Subscribe",
+      "Resource": [
+        "arn:aws:iot:eu-central-1:654384432543:topicfilter/storechannel",
+        "arn:aws:iot:eu-central-1:654384432543:topicfilter/mainchannel"
+      ]
+    }
+  ]
+}
