@@ -40,7 +40,7 @@ export default class EasyWk extends cdk.Stack {
     });
 
     // der kann nur in der gleichen region sein
-    const cert_arn = ListenerCertificate.fromArn('arn:aws:acm:eu-central-1:654384432543:certificate/12aa1c3e-1421-4ee3-85a5-27f6f9b8c5c5')
+    const cert_arn = ListenerCertificate.fromArn('arn:aws:acm:eu-central-1:654384432543:certificate/8bbad726-6fea-4986-bb13-0debacdd9e3c')
 
     const httpsListener = alb.addListener('SSLListener', {
       port: 443,
