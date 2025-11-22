@@ -55,10 +55,10 @@ cdk deploy EasyWk --profile setup
 
 ```bash
 # check ssh connect - ip of server
-scp -i ~/.aws/ec2-key-pair.pem * ubuntu@3.72.35.118:/var/www/html
+scp -i ~/.aws/ec2-key-pair.pem * ubuntu@18.184.193.134:/var/www/html
 ## rsync test
 # rsync -chavzP --stats user@remote.host:/path/to/copy /path/to/local/storage
-rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" ubuntu@3.72.35.118:/var/www/html /opt/shared/lenex/sad/live
+rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" ubuntu@18.184.193.134:/var/www/html /opt/shared/lenex/sad/live
 ```
 
 ### sync: cron and srcript
