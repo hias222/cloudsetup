@@ -69,7 +69,7 @@ sudo rm /var/www/html/index.html
 scp -i ~/.aws/ec2-key-pair.pem * ubuntu@3.67.196.141:/var/www/html
 ## rsync test
 # rsync -chavzP --stats user@remote.host:/path/to/copy /path/to/local/storage
-rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" ubuntu@3.67.196.141:/var/www/html /opt/shared/lenex/dmsm/live
+rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" ubuntu@3.72.35.118:/var/www/html /opt/shared/lenex/sad/live
 ```
 
 ### sync: cron and srcript
