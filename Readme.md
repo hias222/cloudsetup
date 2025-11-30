@@ -40,6 +40,9 @@ cdk deploy --profile setup
 # destroy all
 cdk destroy --profile setup --all
 ```
+## Fehler
+
+In the Attributes tab, click Edit, then click "Add response headers" and enable "Add Access-Control-Allow-Origin header", "Add Access-Control-Allow-Headers header", and "Add Access-Control-Allow-Methods header", using your configuration.
 
 ## EasyWk
 
@@ -49,16 +52,24 @@ The script spins up one ec2 server with php and DNS entry easywk.swimdata.de
 
 ```bash
 cdk deploy EasyWk --profile setup
+
+## ansible
+ansible-playbook -i inventories/production/hosts awsWSService.yml --limit=wsaws
 ```
 
 ### sync: prepare and test
 
 ```bash
+# test
+ssh -i ~/.aws/ec2-key-pair.pem ubuntu@3.67.196.141
+sudo chmod a+rwx /var/www/html
+sudo rm /var/www/html/index.html
+
 # check ssh connect - ip of server
-scp -i ~/.aws/ec2-key-pair.pem * ubuntu@3.72.35.118:/var/www/html
+scp -i ~/.aws/ec2-key-pair.pem * ubuntu@3.67.196.141:/var/www/html
 ## rsync test
 # rsync -chavzP --stats user@remote.host:/path/to/copy /path/to/local/storage
-rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" ubuntu@3.72.35.118:/var/www/html /opt/shared/lenex/sad/live
+rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" ubuntu@3.67.196.141:/var/www/html /opt/shared/lenex/dmsm/live
 ```
 
 ### sync: cron and srcript
@@ -79,7 +90,7 @@ echo "#####" >>  /home/rock/rsync.log
 
 date >> /home/rock/rsync.log
 
-/usr/bin/rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" /opt/shared/lenex/sad/live/* ubuntu@3.72.35.118:/var/www/html >> /home/rock/rsync.log
+/usr/bin/rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" /opt/shared/lenex/dmsm/live/* ubuntu@3.70.221.4:/var/www/html >> /home/rock/rsync.log
 ```
 
 ## LiveTiming
