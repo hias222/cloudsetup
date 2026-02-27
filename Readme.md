@@ -61,15 +61,15 @@ ansible-playbook -i inventories/production/hosts awsWSService.yml --limit=wsaws
 
 ```bash
 # test
-ssh -i ~/.aws/ec2-key-pair.pem ubuntu@3.67.196.141
+ssh -i ~/.aws/ec2-key-pair.pem ubuntu@3.71.87.58
 sudo chmod a+rwx /var/www/html
 sudo rm /var/www/html/index.html
 
 # check ssh connect - ip of server
-scp -i ~/.aws/ec2-key-pair.pem * ubuntu@3.67.196.141:/var/www/html
+scp -i ~/.aws/ec2-key-pair.pem * ubuntu@3.71.87.58:/var/www/html
 ## rsync test
 # rsync -chavzP --stats user@remote.host:/path/to/copy /path/to/local/storage
-rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" ubuntu@3.72.35.118:/var/www/html /opt/shared/lenex/sad/live
+rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" ubuntu@3.71.87.58:/var/www/html /opt/shared/lenex/maerz/live
 ```
 
 ### sync: cron and srcript
@@ -90,7 +90,7 @@ echo "#####" >>  /home/rock/rsync.log
 
 date >> /home/rock/rsync.log
 
-/usr/bin/rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" /opt/shared/lenex/dmsm/live/* ubuntu@3.70.221.4:/var/www/html >> /home/rock/rsync.log
+/usr/bin/rsync -avP -e "ssh -i /home/rock/.aws/ec2-key-pair.pem" /opt/shared/lenex/maerz/live/* ubuntu@3.71.87.58:/var/www/html >> /home/rock/rsync.log
 ```
 
 ## LiveTiming
@@ -125,7 +125,7 @@ ansible-playbook -i inventories/production/hosts awsWSService.yml -e global_clea
 
 ### LiveTiming setup
 
-The script spins up one ec2 server with all services to push messages from local mqtt
+The script spins up one ec2 server with all services to push messages from local mqtt - 54.93.128.249
 
 ```bash
 cdk deploy LiveTiming --profile setup
