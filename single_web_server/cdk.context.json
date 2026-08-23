@@ -1,0 +1,11 @@
+{
+  "hosted-zone:account=654384432543:domainName=swimdata.de:region=eu-central-1": {
+    "Id": "/hostedzone/Z02356492TI9XLJ8MG2C1",
+    "Name": "swimdata.de."
+  },
+  "availability-zones:account=654384432543:region=eu-central-1": [
+    "eu-central-1a",
+    "eu-central-1b",
+    "eu-central-1c"
+  ]
+}
