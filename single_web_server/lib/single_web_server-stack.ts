@@ -72,18 +72,43 @@ export class SingleWebServerStack extends cdk.Stack {
     instance.addUserData(
       'dnf update -y',
 
-      // Nginx, PHP, PHP-FPM und Python3 für Certbot installieren
-      'dnf install -y nginx php php-fpm php-mysqli php-json php-xml python3-pip',
-
-      // Certbot via pip installieren
-      'python3 -m venv /opt/certbot/',
+      // Nginx, PHP, PHP-FPM sowie Python 3.11 (oder die aktuellste AL2023 Version) installieren
+      'dnf install -y nginx php php-fpm php-mysqli php-json php-xml python3.11 python3.11-pip',
+      
+      // Certbot explizit mit der neuen Python 3.11 Version in einer virtuellen Umgebung einrichten
+      'python3.11 -m venv /opt/certbot/',
       '/opt/certbot/bin/pip install --upgrade pip',
       '/opt/certbot/bin/pip install certbot certbot-nginx',
-      'ln -s /opt/certbot/bin/certbot /usr/bin/certbot',
-
+      'ln -sf /opt/certbot/bin/certbot /usr/bin/certbot', // -sf überschreibt bestehende Links sicher
+      
       // PHP-FPM Berechtigungen korrigieren
       "sed -i 's/user = apache/user = nginx/g' /etc/php-fpm.d/www.conf",
       "sed -i 's/group = apache/group = nginx/g' /etc/php-fpm.d/www.conf",
+
+      // NEU: Die fehleranfällige Standard-nginx.conf komplett durch eine saubere Version ersetzen
+      'cat << "EOF" > /etc/nginx/nginx.conf',
+      'user nginx;',
+      'worker_processes auto;',
+      'error_log /var/log/nginx/error.log notice;',
+      'pid /run/nginx.pid;',
+      'events {',
+      '    worker_connections 1024;',
+      '}',
+      'http {',
+      '    include /etc/nginx/mime.types;',
+      '    default_type application/octet-stream;',
+      '    log_format main \'$remote_addr - $remote_user [$time_local] "$request" \'',
+      '                    \'$status $body_bytes_sent "$http_referer" \'',
+      '                    \'"$http_user_agent" "$http_x_forwarded_for"\';',
+      '    access_log /var/log/nginx/access.log main;',
+      '    sendfile on;',
+      '    tcp_nopush on;',
+      '    keepalive_timeout 65;',
+      '    types_hash_max_size 4096;',
+      '    # Hier werden alle benutzerdefinierten Webseiten-Konfigurationen geladen:',
+      '    include /etc/nginx/conf.d/*.conf;',
+      '}',
+      'EOF',
 
       // Temporäre Nginx-Konfiguration für Port 80 schreiben
       'cat << "EOF" > /etc/nginx/conf.d/php.conf',
@@ -104,9 +129,6 @@ export class SingleWebServerStack extends cdk.Stack {
       '}',
       'EOF',
 
-      // Standard-Server-Block aus der nginx.conf entfernen
-      "sed -i '/server {/,/^    }/d' /etc/nginx/nginx.conf",
-
       // PHP-Testdatei erstellen
       'echo "<?php phpinfo(); ?>" > /usr/share/nginx/html/index.php',
       'chown -R nginx:nginx /usr/share/nginx/html',
@@ -118,7 +140,7 @@ export class SingleWebServerStack extends cdk.Stack {
       'systemctl enable nginx',
 
       // Let's Encrypt Zertifikat anfordern (E-Mail anpassen!)
-      'certbot --nginx --non-interactive --agree-tos --redirect -m admin@swimdata.de -d result.swimdata.de',
+      'certbot --nginx --non-interactive --agree-tos --redirect -m hias.fuchs@googlemail.com -d result.swimdata.de',
 
       // Täglicher Cronjob für die Zertifikatserneuerung
       'echo "0 3 * * * /usr/bin/certbot renew --quiet --post-hook \"systemctl reload nginx\"" > /etc/cron.d/certbot-renew'
