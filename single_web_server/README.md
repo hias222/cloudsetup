@@ -22,3 +22,7 @@ cdk list --profile setup
 cdk deploy --profile setup
 cdk
 ```
+
+```bash
+ssh -i ~/.aws/ec2-key-pair.pem ec2-user@result.swimdata.de
+```
