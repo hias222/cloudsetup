@@ -71,9 +71,17 @@ export class SingleWebServerStack extends cdk.Stack {
     // 8. User Data: Nginx, PHP-FPM und Certbot (Let's Encrypt) installieren
     instance.addUserData(
       'dnf update -y',
-
       // Nginx, PHP, PHP-FPM sowie Python 3.11 (oder die aktuellste AL2023 Version) installieren
       'dnf install -y nginx php php-fpm php-mysqli php-json php-xml python3.11 python3.11-pip',
+
+      // 1. Nginx-User für SSH-Login freischalten
+      'mkdir -p /home/nginx/.ssh',
+      'usermod -d /home/nginx -s /bin/bash nginx',                  // Aktiviert die Bash-Shell für den User 'nginx'
+      'cp /home/ec2-user/.ssh/authorized_keys /home/nginx/.ssh/', // Kopiert den erlaubten SSH-Key vom ec2-user
+      'chown -R nginx:nginx /home/nginx',   // Setzt die Besitzrechte korrekt auf den nginx-User
+      'chmod 700 /home/nginx/.ssh',              // Setzt sichere Verzeichnisrechte
+      'chmod 600 /home/nginx/.ssh/authorized_keys', // Setzt sichere Dateirechte
+
       
       // Certbot explizit mit der neuen Python 3.11 Version in einer virtuellen Umgebung einrichten
       'python3.11 -m venv /opt/certbot/',
@@ -144,6 +152,7 @@ export class SingleWebServerStack extends cdk.Stack {
 
       // Täglicher Cronjob für die Zertifikatserneuerung
       'echo "0 3 * * * /usr/bin/certbot renew --quiet --post-hook \"systemctl reload nginx\"" > /etc/cron.d/certbot-renew'
+
     );
 
     new cdk.CfnOutput(this, 'WebUrl', {
