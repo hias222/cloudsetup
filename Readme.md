@@ -31,7 +31,7 @@ for easywk and Websocket a certificate need to bee prepared, add arn in cdk scri
 tsc
 
 # run
-cdk list
+cdk list --profile setup
 cdk bootstrap --profile setup
 
 # deploys all
@@ -44,9 +44,11 @@ cdk destroy --profile setup --all
 
 In the Attributes tab, click Edit, then click "Add response headers" and enable "Add Access-Control-Allow-Origin header", "Add Access-Control-Allow-Headers header", and "Add Access-Control-Allow-Methods header", using your configuration.
 
-## EasyWk
+## EasyWk/CPS
 
 ### setup
+
+single_web_server/README.md
 
 The script spins up one ec2 server with php and DNS entry easywk.swimdata.de
 
